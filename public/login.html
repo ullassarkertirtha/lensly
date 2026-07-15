@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log In | LensLy</title>
+    <meta name="description"
+        content="Log in to your LensLy account to manage orders, write reviews, and book consultations." />
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        .auth-page {
+            min-height: calc(100vh - 60px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 16px 80px;
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-box h1 {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .auth-subtitle {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 32px;
+        }
+
+        .auth-subtitle a {
+            color: var(--onyx);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .auth-success {
+            display: none;
+            font-size: 12px;
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 10px 14px;
+            border-radius: var(--radius);
+            margin-bottom: 18px;
+        }
+
+        .auth-success.visible {
+            display: block;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0;
+            color: var(--gray-400);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--onyx);
+            font-family: var(--font-body);
+            transition: border-color var(--transition), background var(--transition);
+            cursor: pointer;
+            background: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .google-btn:hover {
+            border-color: var(--onyx);
+            background: var(--gray-50);
+        }
+
+        .google-btn svg {
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="offer-banner">
+        <span id="offer-msg"></span>
+        <span>—</span>
+        <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+        <span id="offer-countdown" class="countdown"></span>
+    </div>
+
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-logo">LensLy</a>
+            <div class="navbar-right">
+                <a href="/cart.html">
+                    Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page-enter">
+        <div class="auth-page">
+            <div class="auth-box">
+                <h1>Log In</h1>
+                <p class="auth-subtitle">No account? <a href="/signup.html">Sign up</a></p>
+
+                <div class="auth-success" id="auth-success">Account created! You can now log in.</div>
+
+                <!-- Google OAuth -->
+                <button class="google-btn" id="google-btn" onclick="doGoogleLogin()">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path
+                            d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                            fill="#4285F4" />
+                        <path
+                            d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                            fill="#34A853" />
+                        <path
+                            d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                            fill="#FBBC05" />
+                        <path
+                            d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"
+                            fill="#EA4335" />
+                    </svg>
+                    Continue with Google
+                </button>
+
+                <div class="auth-divider">or</div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="f-email" class="form-input" placeholder="you@email.com"
+                        autocomplete="email" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div style="position:relative">
+                        <input type="password" id="f-password" class="form-input" placeholder="Your password"
+                            style="padding-right:48px" autocomplete="current-password" />
+                        <button type="button" onclick="togglePassword()" id="toggle-pw"
+                            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:12px;font-family:var(--font-body);padding:0;letter-spacing:0.04em">SHOW</button>
+                    </div>
+                </div>
+                <div style="text-align:right;margin-top:-10px;margin-bottom:18px">
+                    <a href="/forgot-password.html" style="font-size:12px;color:var(--gray-400)">Forgot password?</a>
+                </div>
+
+                <div class="form-error" id="form-error"></div>
+                <button class="submit-btn" id="submit-btn" onclick="doLogin()">Log In</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <p class="footer-col-title">About</p>
+                    <a href="/about.html">Our Story</a>
+                </div>
+                <div class="footer-col">
+                    <p class="footer-col-title">Contact</p>
+                    <a href="/contact.html">Contact Us</a>
+                </div>
+                <div class="footer-col">
+                    <p class="footer-col-title">Support</p>
+                    <a href="/support.html">Help Center</a>
+                </div>
+                <div class="footer-col">
+                    <p class="footer-col-title">Legal</p>
+                    <a href="/privacy.html">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            LensLy © 2026 — All Rights Reserved
+        </div>
+    </footer>
+
+    <!-- Supabase CDN for Google OAuth (signInWithOAuth runs client-side) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
+    <script src="/js/offers.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+        // ── Supabase anon client (safe to expose — it's the public key) ──
+        const _sb = window.supabase.createClient(
+            'https://datvkmcwzzoamquduxmu.supabase.co',
+            'sb_publishable_5TT9CDCJgx1A5r84Zu05xA_qPvBV_d4'
+        )
+
+        // ── OAuth callback handler ──────────────────────────────────────────────
+        // After Google OAuth, Supabase redirects back here and fires SIGNED_IN.
+        // We sync the session into ll_user / ll_token so the rest of the app
+        // (Auth.isLoggedIn, initNav, review submissions) all just work.
+        _sb.auth.onAuthStateChange(async (event, session) => {
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && !Auth.isLoggedIn()) {
+                // If they just explicitly logged out, the Supabase session might still be active
+                // in local storage. Kill it instead of auto-logging them back in.
+                if (localStorage.getItem('ll_logged_out')) {
+                    await _sb.auth.signOut()
+                    return
+                }
+
+                const u = session.user
+                Auth.setUser({
+                    id: u.id,
+                    email: u.email,
+                    name: u.user_metadata?.full_name || u.user_metadata?.name || u.email.split('@')[0],
+                })
+                localStorage.setItem('ll_token', session.access_token)
+
+                const params = new URLSearchParams(location.search)
+                let next = params.get('next') || '/'
+                if (params.get('facescan')) next = '/face-scan.html'
+
+                location.href = next
+            }
+        })
+
+        // ── Query param handling ──
+        const urlParams = new URLSearchParams(location.search)
+        if (urlParams.get('registered')) {
+            document.getElementById('auth-success').classList.add('visible')
+        }
+        if (urlParams.get('reset')) {
+            const el = document.getElementById('auth-success')
+            el.textContent = 'Password updated! You can now log in.'
+            el.classList.add('visible')
+        }
+        if (urlParams.get('facescan')) {
+            const el = document.getElementById('auth-success')
+            el.textContent = 'You have to login to use the face scan feature.'
+            el.classList.add('visible')
+        }
+
+        // ── Email/password login ──
+        async function doLogin() {
+            const email = document.getElementById('f-email').value.trim()
+            const password = document.getElementById('f-password').value
+            const errEl = document.getElementById('form-error')
+            errEl.classList.remove('visible')
+            localStorage.removeItem('ll_logged_out')
+
+            if (!email || !password) {
+                errEl.textContent = 'Please fill in all fields.'
+                errEl.classList.add('visible')
+                return
+            }
+
+            const btn = document.getElementById('submit-btn')
+            btn.disabled = true
+            btn.textContent = 'Logging in...'
+
+            const data = await API.login({ email, password })
+
+            if (data.error) {
+                errEl.textContent = data.error
+                errEl.classList.add('visible')
+                btn.disabled = false
+                btn.textContent = 'Log In'
+                return
+            }
+
+            Auth.setUser(data.user)
+            localStorage.setItem('ll_token', data.token)
+
+            let redirectTo = urlParams.get('next') || '/'
+            if (urlParams.get('facescan')) redirectTo = '/face-scan.html'
+
+            location.href = redirectTo
+        }
+
+        async function doGoogleLogin() {
+            localStorage.removeItem('ll_logged_out')
+            const btn = document.getElementById('google-btn')
+            btn.disabled = true
+            btn.style.opacity = '0.6'
+            await _sb.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/login.html' + location.search },
+            })
+        }
+
+        // ── Enter key shortcut ──
+        document.getElementById('f-password').addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin()
+        })
+
+        function togglePassword() {
+            const input = document.getElementById('f-password')
+            const btn = document.getElementById('toggle-pw')
+            if (input.type === 'password') { input.type = 'text'; btn.textContent = 'HIDE' }
+            else { input.type = 'password'; btn.textContent = 'SHOW' }
+        }
+
+        initNav()
+        initOfferBanner()
+    </script>
+</body>
+
+</html>
