@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LensLy</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <div id="offer-banner">
+    <span id="offer-msg"></span>
+    <span>—</span>
+    <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+    <span id="offer-countdown" class="countdown"></span>
+  </div>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">LensLy</a>
+      <div class="navbar-right">
+        <div class="nav-menu-container">
+          <button id="nav-menu-btn" class="nav-menu-btn" onclick="toggleNavMenu(event)">≡ Menu</button>
+          <div id="nav-dropdown" class="nav-dropdown">
+            <span id="nav-username" class="nav-user-name" style="padding:12px 16px; display:block; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1a1a1a;"></span>
+            <a href="/login.html" id="nav-login">Login</a>
+            <a href="/face-scan.html">Face Scan</a>
+            <a href="/consultation.html">Doctor Consultation</a>
+            <button id="nav-logout" onclick="Auth.logout()" style="display:none; text-align:left; border-top:1px solid #f0f0f0;">Logout</button>
+          </div>
+        </div>
+        <span class="navbar-divider">|</span>
+        <a href="/cart.html">
+          Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-enter">
+    <div class="site-banner" id="hero-section">
+      <img id="hero-img" src="/assets/banner.jpg" alt="LensLy Banner" />
+    </div>
+
+    <div class="container">
+      <div class="products-header-row">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="products-header"></div>
+          <div class="sort-control">
+            <select id="filter-select" onchange="setFilter(this.value)">
+              <option value="all">All</option>
+              <optgroup label="Gender">
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+                <option value="Unisex">Unisex</option>
+              </optgroup>
+              <optgroup label="Color">
+                <option value="Color:Black">Black</option>
+                <option value="Color:Blue">Blue</option>
+                <option value="Color:Brown">Brown</option>
+                <option value="Color:Clear">Clear</option>
+                <option value="Color:Gold">Gold</option>
+                <option value="Color:Green">Green</option>
+                <option value="Color:Grey">Grey</option>
+                <option value="Color:Pink">Pink</option>
+                <option value="Color:Purple">Purple</option>
+                <option value="Color:Red">Red</option>
+                <option value="Color:Silver">Silver</option>
+                <option value="Color:White">White</option>
+                <option value="Color:Yellow">Yellow</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="sort-control">
+          <select id="sort-select" onchange="sortProducts()">
+            <option value="default">Sort By</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name-asc">Name: A to Z</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="search-input" class="search-input" placeholder="Search frames..." oninput="applyFilterAndSort()" />
+      </div>
+
+      <div class="product-grid" id="product-grid">
+        <div class="product-card">
+          <div class="product-card-img skeleton" style="aspect-ratio:1"></div>
+          <div class="skeleton" style="height:14px;margin-top:12px;width:70%"></div>
+          <div class="skeleton" style="height:12px;margin-top:6px;width:40%"></div>
+        </div>
+        <div class="product-card">
+          <div class="product-card-img skeleton" style="aspect-ratio:1"></div>
+          <div class="skeleton" style="height:14px;margin-top:12px;width:70%"></div>
+          <div class="skeleton" style="height:12px;margin-top:6px;width:40%"></div>
+        </div>
+        <div class="product-card">
+          <div class="product-card-img skeleton" style="aspect-ratio:1"></div>
+          <div class="skeleton" style="height:14px;margin-top:12px;width:70%"></div>
+          <div class="skeleton" style="height:12px;margin-top:6px;width:40%"></div>
+        </div>
+        <div class="product-card">
+          <div class="product-card-img skeleton" style="aspect-ratio:1"></div>
+          <div class="skeleton" style="height:14px;margin-top:12px;width:70%"></div>
+          <div class="skeleton" style="height:12px;margin-top:6px;width:40%"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+    <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <p class="footer-col-title">About</p>
+          <a href="/about.html">Our Story</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Contact</p>
+          <a href="/contact.html">Contact Us</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Support</p>
+          <a href="/support.html">Help Center</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Legal</p>
+          <a href="/privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      LensLy © 2026 — All Rights Reserved
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/offers.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/products.js"></script>
+  <script>
+    const bannerImg = document.getElementById('hero-img')
+    const bannerWrap = document.getElementById('hero-section')
+    bannerImg.onerror = () => bannerWrap.style.display = 'none'
+    bannerImg.onload = () => bannerWrap.classList.add('loaded')
+    if (bannerImg.complete) bannerWrap.classList.add('loaded')
+
+    initNav()
+    initOfferBanner()
+    loadPage()
+  </script>
+</body>
+</html>
