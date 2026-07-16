@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offers | LensLy Admin</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+
+  <!-- Mobile top bar -->
+  <div class="admin-mobile-bar">
+    <div class="admin-mobile-logo">LensLy <span>Admin</span></div>
+    <button class="admin-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+  </div>
+  <div class="admin-mobile-nav" id="mobile-nav">
+    <a href="/admin/index.html">Dashboard</a>
+    <a href="/admin/orders.html">Orders</a>
+    <a href="/admin/products.html">Products</a>
+    <a href="/admin/offers.html" class="active">Offers</a>
+    <a href="/admin/consultations.html">Consultations</a>
+    <div class="mobile-footer">
+      <span id="mob-username"></span>
+      <button onclick="AdminAuth.logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-logo">LensLy<span>Admin Panel</span></div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/index.html">Dashboard</a>
+        <a href="/admin/orders.html">Orders</a>
+        <a href="/admin/products.html">Products</a>
+        <a href="/admin/offers.html" class="active">Offers</a>
+        <a href="/admin/consultations.html">Consultations</a>
+      </nav>
+      <div class="admin-sidebar-footer">
+        <strong id="sb-username">Admin</strong>
+        <button onclick="AdminAuth.logout()">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="admin-topbar"><h1>Offers</h1></div>
+      <div class="admin-content">
+
+        <!-- Create offer form -->
+        <div class="admin-form">
+          <div class="admin-form-title">Create New Offer</div>
+          <div class="admin-alert" id="form-alert"></div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Offer Key <span style="font-weight:400;color:#9a9a9a">(unique slug)</span></label>
+              <input type="text" id="f-key" placeholder="e.g. summer25" />
+            </div>
+            <div class="form-field">
+              <label>Label</label>
+              <input type="text" id="f-label" placeholder="e.g. Summer Sale 25% Off" />
+            </div>
+            <div class="form-field">
+              <label>Offer Type</label>
+              <select id="f-type">
+                <option value="percentage">Percentage Discount</option>
+                <option value="free_shipping">Free Shipping</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Discount %</label>
+              <input type="number" id="f-pct" placeholder="25" min="0" max="99" />
+            </div>
+            <div class="form-field">
+              <label>Starts At</label>
+              <input type="datetime-local" id="f-starts" />
+            </div>
+            <div class="form-field">
+              <label>Ends At</label>
+              <input type="datetime-local" id="f-ends" />
+            </div>
+            <div class="form-field">
+              <label>Active</label>
+              <select id="f-active">
+                <option value="TRUE">Yes</option>
+                <option value="FALSE">No</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="create-btn" onclick="createOffer()">Create Offer</button>
+          </div>
+        </div>
+
+        <!-- Existing offers table with inline edit -->
+        <p class="section-heading">All Offers — click any field to edit, then Save</p>
+        <div class="admin-alert" id="table-alert"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Label</th>
+                <th>Type</th>
+                <th>%</th>
+                <th>Starts At</th>
+                <th>Ends At</th>
+                <th>Active</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="offers-body">
+              <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/admin/auth.js"></script>
+  <script>
+    AdminAuth.requireLogin()
+    const uname = AdminAuth.getUsername() || 'Admin'
+    document.getElementById('sb-username').textContent = uname
+    document.getElementById('mob-username').textContent = uname
+
+    function toggleMobileNav() {
+      document.getElementById('mobile-nav').classList.toggle('open')
+      document.getElementById('hamburger').classList.toggle('open')
+    }
+
+    let allOffers = []
+
+    async function loadOffers() {
+      const res = await AdminAuth.fetch('/api/offers?all=true')
+      const { offers } = await res.json()
+      allOffers = offers || []
+      renderTable()
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('offers-body')
+      if (!allOffers.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No offers yet. Create one above.</td></tr>'
+        return
+      }
+
+      // Convert ISO/datetime-local format for <input type=datetime-local>
+      function toLocalDT(val) {
+        if (!val) return ''
+        try {
+          const d = new Date(val)
+          if (isNaN(d)) return val
+          // datetime-local format: YYYY-MM-DDTHH:MM
+          return d.toISOString().slice(0, 16)
+        } catch { return val }
+      }
+
+      tbody.innerHTML = allOffers.map((o, idx) => `
+        <tr data-key="${escHtml(o.offer_key)}">
+          <td style="font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;white-space:nowrap">${escHtml(o.offer_key)}</td>
+          <td><input class="inline-input-wide" type="text" value="${escHtml(o.label)}" data-field="label" /></td>
+          <td>
+            <select class="inline-input" data-field="offer_type" style="width:110px">
+              <option value="percentage" ${o.offer_type !== 'free_shipping' ? 'selected' : ''}>Percentage</option>
+              <option value="free_shipping" ${o.offer_type === 'free_shipping' ? 'selected' : ''}>Free Ship</option>
+            </select>
+          </td>
+          <td><input class="inline-input" type="number" value="${o.percentage}" data-field="percentage" min="0" max="99" style="width:50px" /></td>
+          <td><input class="inline-dt" type="datetime-local" value="${toLocalDT(o.starts_at)}" data-field="starts_at" /></td>
+          <td><input class="inline-dt" type="datetime-local" value="${toLocalDT(o.ends_at)}" data-field="ends_at" /></td>
+          <td>
+            <label class="toggle-active">
+              <input type="checkbox" data-field="active" ${o.active ? 'checked' : ''} />
+              <div class="toggle-track"></div>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="saveOffer(this.closest('tr'))">Save</button>
+          </td>
+        </tr>
+      `).join('')
+    }
+
+    async function saveOffer(tr) {
+      const key = tr.dataset.key
+      const label     = tr.querySelector('[data-field="label"]').value.trim()
+      const offer_type = tr.querySelector('[data-field="offer_type"]').value
+      const percentage = tr.querySelector('[data-field="percentage"]').value || 0
+      const starts_at  = tr.querySelector('[data-field="starts_at"]').value
+      const ends_at    = tr.querySelector('[data-field="ends_at"]').value
+      const active     = tr.querySelector('[data-field="active"]').checked ? 'TRUE' : 'FALSE'
+
+      const alertEl = document.getElementById('table-alert')
+      alertEl.className = 'admin-alert'
+
+      const btn = tr.querySelector('button')
+      btn.disabled = true
+      btn.textContent = '…'
+
+      try {
+        const res = await AdminAuth.fetch(`/api/offers/${encodeURIComponent(key)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label, offer_type, percentage, starts_at, ends_at, active }),
+        })
+        const d = await res.json()
+        if (d.success) {
+          alertEl.textContent = `Offer "${key}" updated.`
+          alertEl.className = 'admin-alert success visible'
+          btn.textContent = 'Saved ✓'
+          setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; alertEl.className = 'admin-alert' }, 2000)
+        } else {
+          alertEl.textContent = d.error || 'Update failed'
+          alertEl.className = 'admin-alert error visible'
+          btn.textContent = 'Save'
+          btn.disabled = false
+        }
+      } catch {
+        alertEl.textContent = 'Network error'
+        alertEl.className = 'admin-alert error visible'
+        btn.textContent = 'Save'
+        btn.disabled = false
+      }
+    }
+
+    async function createOffer() {
+      const alertEl = document.getElementById('form-alert')
+      alertEl.className = 'admin-alert'
+
+      const body = {
+        offer_key:  document.getElementById('f-key').value.trim(),
+        label:      document.getElementById('f-label').value.trim(),
+        offer_type: document.getElementById('f-type').value,
+        percentage: document.getElementById('f-pct').value || 0,
+        starts_at:  document.getElementById('f-starts').value,
+        ends_at:    document.getElementById('f-ends').value,
+        active:     document.getElementById('f-active').value,
+      }
+
+      if (!body.offer_key || !body.label || !body.starts_at || !body.ends_at) {
+        alertEl.textContent = 'Key, Label, and Dates are required.'
+        alertEl.className = 'admin-alert error visible'
+        return
+      }
+
+      const btn = document.getElementById('create-btn')
+      btn.disabled = true
+      btn.textContent = 'Creating…'
+
+      try {
+        const res = await AdminAuth.fetch('/api/offers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        const d = await res.json()
+        if (d.success) {
+          alertEl.textContent = 'Offer created!'
+          alertEl.className = 'admin-alert success visible'
+          ;['f-key','f-label','f-pct','f-starts','f-ends'].forEach(id => document.getElementById(id).value = '')
+          loadOffers()
+        } else {
+          alertEl.textContent = d.error || 'Failed'
+          alertEl.className = 'admin-alert error visible'
+        }
+      } catch {
+        alertEl.textContent = 'Network error'
+        alertEl.className = 'admin-alert error visible'
+      } finally {
+        btn.disabled = false
+        btn.textContent = 'Create Offer'
+      }
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    loadOffers()
+  </script>
+</body>
+</html>
