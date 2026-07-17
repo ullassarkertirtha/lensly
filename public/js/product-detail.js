@@ -9,7 +9,7 @@ if (!productId) location.href = '/'
 async function loadProduct() {
   try {
     // Start fetching reviews immediately in parallel
-    loadReviews()
+    // loadReviews() // TODO: Implement reviews
 
     const [prodData, offerData] = await Promise.all([
       API.getProduct(productId),
@@ -131,9 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         folder_id: currentProduct.folder_id,
         name: currentProduct.name,
         description: currentProduct.description,
-        price: finalPrice,
-        lens_type: lensType,
-        lens_power: lensPower,
+        price: finalPrice
       }, qty)
 
       btn.textContent = '✓ Added to Cart'

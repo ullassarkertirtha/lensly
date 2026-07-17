@@ -74,7 +74,7 @@ function renderGrid(products) {
   products.forEach((p, index) => {
     const hasStock = p.stock > 0
     const { finalPrice, discountLabel } = Offers.calculate(p.price, allOffers)
-    const rating = ratingsMap[p.folder_id]
+
     const card = document.createElement('a')
     card.href = `/product-detail.html?id=${p.folder_id}`
     card.className = 'product-card'
