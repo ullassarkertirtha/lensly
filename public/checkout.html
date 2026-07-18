@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Checkout | LensLy</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <div id="offer-banner">
+    <span id="offer-msg"></span>
+    <span>—</span>
+    <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+    <span id="offer-countdown" class="countdown"></span>
+  </div>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">LensLy</a>
+      <div class="navbar-right">
+        <div class="nav-menu-container">
+          <button id="nav-menu-btn" class="nav-menu-btn" onclick="toggleNavMenu(event)">≡ Menu</button>
+          <div id="nav-dropdown" class="nav-dropdown">
+            <span id="nav-username" class="nav-user-name" style="padding:12px 16px; display:block; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1a1a1a;"></span>
+            <a href="/login.html" id="nav-login">Login</a>
+            <a href="/face-scan.html">Face Scan</a>
+            <a href="/consultation.html">Doctor Consultation</a>
+            <button id="nav-logout" onclick="Auth.logout()" style="display:none; text-align:left; border-top:1px solid #f0f0f0;">Logout</button>
+          </div>
+        </div>
+        <span class="navbar-divider">|</span>
+        <a href="/cart.html">
+          Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-enter">
+    <div class="checkout-page">
+      <h1>Checkout</h1>
+      <div class="checkout-layout">
+
+        <div class="checkout-form">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="f-name" class="form-input" placeholder="Your full name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" id="f-email" class="form-input" placeholder="you@email.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" id="f-phone" class="form-input" placeholder="01XXXXXXXXX" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Delivery Address *</label>
+            <textarea id="f-address" class="form-input form-textarea" placeholder="House, Road, Area, City"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Note (optional)</label>
+            <input type="text" id="f-note" class="form-input" placeholder="Any special instructions" />
+          </div>
+
+          <div class="form-error" id="form-error" style="margin-top:18px"></div>
+          <button class="submit-btn" id="submit-btn" onclick="placeOrder()" style="margin-top:8px">
+            Place Order — Cash on Delivery
+          </button>
+          <p class="form-note">By placing this order you agree to pay on delivery.</p>
+        </div>
+
+        <div class="summary-sidebar" id="order-sidebar"></div>
+
+      </div>
+    </div>
+  </main>
+
+    <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <p class="footer-col-title">About</p>
+          <a href="/about.html">Our Story</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Contact</p>
+          <a href="/contact.html">Contact Us</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Support</p>
+          <a href="/support.html">Help Center</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Legal</p>
+          <a href="/privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      LensLy © 2026 — All Rights Reserved
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/offers.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/checkout.js"></script>
+</body>
+</html>
