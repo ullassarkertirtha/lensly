@@ -1,51 +1,39 @@
 const Cart = {
-    getItems() {
-        try {
-            const items = JSON.parse(localStorage.getItem('ll_cart'));
-            return Array.isArray(items) ? items.filter(Boolean) : [];
-        } catch {
-            return [];
-        }
-    },
-    save(items) {
-        localStorage.setItem('ll_cart', JSON.stringify(items));
-        if (typeof initNav === 'function') initNav();
-    },
-    total() {
-        return this.getItems().reduce((sum, item) => sum + (item.qty || 1), 0);
-    },
-    quantityOfFrame(folderId) {
-        const item = this.getItems().find(i => i.folder_id === folderId);
-        return item ? (item.qty || 1) : 0;
-    },
-    add(product) {
-        const items = this.getItems();
-        const existing = items.find(i => i.folder_id === product.folder_id);
-        if (existing) {
-            existing.qty = (existing.qty || 1) + (product.qty || 1);
-        } else {
-            items.push({ ...product, qty: product.qty || 1 });
-        }
-        this.save(items);
-    },
-    update(folderId, qty) {
-        let items = this.getItems();
-        const item = items.find(i => i.folder_id === folderId);
-        if (item) {
-            if (qty <= 0) {
-                this.remove(folderId);
-                return;
-            }
-            item.qty = qty;
-            this.save(items);
-        }
-    },
-    remove(folderId) {
-        const items = this.getItems().filter(i => i.folder_id !== folderId);
-        this.save(items);
-    },
-    clear() {
-        localStorage.removeItem('ll_cart');
-        if (typeof initNav === 'function') initNav();
+  get() {
+    try {
+      return JSON.parse(localStorage.getItem('ll_cart') || '[]')
+    } catch { return [] }
+  },
+  save(cart) {
+    localStorage.setItem('ll_cart', JSON.stringify(cart))
+  },
+  // A cart "line" is a unique combination of frame + lens config — the same
+  // frame with two different prescriptions must stay as two separate lines.
+  add(item, qty = 1) {
+    const cart = this.get()
+    const idx = cart.findIndex(i =>
+      i.folder_id === item.folder_id &&
+      i.lens_type === item.lens_type &&
+      i.lens_power === item.lens_power
+    )
+    if (idx > -1) {
+      cart[idx].qty += qty
+    } else {
+      cart.push({ ...item, qty })
     }
-};
+    this.save(cart)
+  },
+  clear() {
+    this.save([])
+  },
+  total() {
+    return this.get().reduce((s, i) => s + i.qty, 0)
+  },
+  // How many of this exact frame (any lens config) are already in the cart —
+  // used for stock checks, since stock is per-frame, not per-lens-config.
+  quantityOfFrame(folder_id) {
+    return this.get()
+      .filter(i => i.folder_id === folder_id)
+      .reduce((s, i) => s + i.qty, 0)
+  },
+}
