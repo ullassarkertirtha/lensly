@@ -14,8 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emailEl && user.email) emailEl.value = user.email
   }
 })
+function getCartItems() {
+  if (typeof Cart !== 'undefined') {
+    if (typeof Cart.getItems === 'function') return Cart.getItems()
+    if (typeof Cart.get === 'function') return Cart.get()
+  }
+  try {
+    const items = JSON.parse(localStorage.getItem('ll_cart'))
+    return Array.isArray(items) ? items.filter(Boolean) : []
+  } catch {
+    return []
+  }
+}
+
 async function init() {
-  const cart = Cart.get()
+  const cart = getCartItems()
   if (cart.length === 0) { location.href = '/cart.html'; return }
 
   const offerData = await API.getOffers()
@@ -35,7 +48,7 @@ async function init() {
         <div>
           <div class="summary-item-name">${item.name}</div>
           ${item.description ? `<div class="summary-item-qty">${item.description}</div>` : ''}
-          <div class="summary-item-qty">Qty ${item.qty} · ${item.lens_type}${item.lens_power ? ' — ' + item.lens_power : ''}</div>
+          <div class="summary-item-qty">Qty ${item.qty}${item.lens_type ? ` · ${item.lens_type}` : ''}${item.lens_power ? ` — ${item.lens_power}` : ''}</div>
         </div>
         <div class="summary-item-price">৳ ${(item.price * item.qty).toLocaleString()}</div>
       </div>`).join('')}
@@ -53,6 +66,19 @@ async function placeOrder() {
   const phone = document.getElementById('f-phone').value.trim()
   const address = document.getElementById('f-address').value.trim()
   const note = document.getElementById('f-note').value.trim()
+  const lensTypeEl = document.getElementById('f-lens-type')
+  const lensType = lensTypeEl ? lensTypeEl.value : 'Single Vision'
+
+  const sph = document.getElementById('f-sph')?.value.trim() || ''
+  const cyl = document.getElementById('f-cyl')?.value.trim() || ''
+  const axis = document.getElementById('f-axis')?.value.trim() || ''
+
+  const powerParts = []
+  if (sph) powerParts.push(`SPH: ${sph}`)
+  if (cyl) powerParts.push(`CYL: ${cyl}`)
+  if (axis) powerParts.push(`AXIS: ${axis}`)
+  const lensPower = powerParts.join(', ')
+
   const errEl = document.getElementById('form-error')
   errEl.classList.remove('visible')
 
@@ -62,12 +88,18 @@ async function placeOrder() {
     return
   }
 
-  const cart = Cart.get()
+  if (!lensType) {
+    errEl.textContent = 'Please select a lens type.'
+    errEl.classList.add('visible')
+    return
+  }
+
+  const cart = getCartItems()
   const cartItems = cart.map(i => ({
     folder_id: i.folder_id,
     qty: i.qty,
-    lens_type: i.lens_type,
-    lens_power: i.lens_power,
+    lens_type: lensType || i.lens_type || 'Single Vision',
+    lens_power: lensPower || i.lens_power || '',
   }))
 
   const btn = document.getElementById('submit-btn')
