@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products | LensLy Admin</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+
+  <!-- Mobile top bar -->
+  <div class="admin-mobile-bar">
+    <div class="admin-mobile-logo">LensLy <span>Admin</span></div>
+    <button class="admin-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+  </div>
+  <div class="admin-mobile-nav" id="mobile-nav">
+    <a href="/admin/index.html">Dashboard</a>
+    <a href="/admin/orders.html">Orders</a>
+    <a href="/admin/products.html" class="active">Products</a>
+    <a href="/admin/offers.html">Offers</a>
+    <a href="/admin/consultations.html">Consultations</a>
+    <div class="mobile-footer">
+      <span id="mob-username"></span>
+      <button onclick="AdminAuth.logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-logo">LensLy<span>Admin Panel</span></div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/index.html">Dashboard</a>
+        <a href="/admin/orders.html">Orders</a>
+        <a href="/admin/products.html" class="active">Products</a>
+        <a href="/admin/offers.html">Offers</a>
+        <a href="/admin/consultations.html">Consultations</a>
+      </nav>
+      <div class="admin-sidebar-footer">
+        <strong id="sb-username">Admin</strong>
+        <button onclick="AdminAuth.logout()">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="admin-topbar"><h1>Products &amp; Stock</h1></div>
+      <div class="admin-content">
+
+        <!-- CSV Upload -->
+        <div class="admin-form">
+          <div class="admin-form-title">Bulk Upload via CSV</div>
+          <p style="font-size:12px;color:#6a6a6a;margin-bottom:20px">
+            Upload a CSV with columns: <code style="background:#f0f0f0;padding:2px 6px;font-size:11px;border-radius:2px">folder_id, name, description, gender, color, price, stock, active</code>.
+            Rows matched by <code style="background:#f0f0f0;padding:2px 6px;font-size:11px;border-radius:2px">folder_id</code> are updated; new ones are appended.
+          </p>
+
+          <div class="admin-alert" id="csv-alert"></div>
+
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <!-- Hidden real file input, triggered by the styled button -->
+            <label class="csv-file-btn" id="csv-label">
+              <input type="file" id="csv-file" accept=".csv,text/csv" onchange="onFileSelect(this)" />
+              Select CSV File
+            </label>
+            <span class="csv-selected-name" id="file-name">No file chosen</span>
+            <button class="btn btn-primary" id="upload-btn" onclick="uploadCSV()" disabled>Upload &amp; Sync</button>
+          </div>
+        </div>
+
+        <!-- Product table -->
+        <div class="table-toolbar">
+          <input class="toolbar-search" id="search" placeholder="Search by name or ID…" oninput="renderTable()" />
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Folder ID</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Color</th>
+                <th>Price (৳)</th>
+                <th>Stock</th>
+                <th>Active</th>
+                <th>Save</th>
+              </tr>
+            </thead>
+            <tbody id="products-body">
+              <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/admin/auth.js"></script>
+  <script>
+    AdminAuth.requireLogin()
+    const uname = AdminAuth.getUsername() || 'Admin'
+    document.getElementById('sb-username').textContent = uname
+    document.getElementById('mob-username').textContent = uname
+
+    function toggleMobileNav() {
+      document.getElementById('mobile-nav').classList.toggle('open')
+      document.getElementById('hamburger').classList.toggle('open')
+    }
+
+    let allProducts = []
+    let csvText = null
+
+    async function loadProducts() {
+      const res = await AdminAuth.fetch('/api/products')
+      const { products } = await res.json()
+      allProducts = products || []
+      renderTable()
+    }
+
+    function renderTable() {
+      const q = document.getElementById('search').value.toLowerCase()
+      const rows = allProducts.filter(p =>
+        !q || (p.folder_id || '').toLowerCase().includes(q) || (p.name || '').toLowerCase().includes(q)
+      )
+
+      const tbody = document.getElementById('products-body')
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No products found.</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = rows.map(p => `
+        <tr data-id="${escHtml(p.folder_id)}">
+          <td style="font-size:11px;color:#6a6a6a;white-space:nowrap">${escHtml(p.folder_id)}</td>
+          <td style="font-weight:500">${escHtml(p.name)}</td>
+          <td>${escHtml(p.gender || '—')}</td>
+          <td>${escHtml(p.color || '—')}</td>
+          <td><input class="inline-input" type="number" value="${p.price}" data-field="price" min="0" /></td>
+          <td><input class="inline-input" type="number" value="${p.stock}" data-field="stock" min="0" /></td>
+          <td>
+            <label class="toggle-active">
+              <input type="checkbox" data-field="active" checked />
+              <div class="toggle-track"></div>
+            </label>
+          </td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="saveRow(this.closest('tr'))">Save</button>
+          </td>
+        </tr>
+      `).join('')
+    }
+
+    async function saveRow(tr) {
+      const id = tr.dataset.id
+      const price = tr.querySelector('[data-field="price"]').value
+      const stock = tr.querySelector('[data-field="stock"]').value
+      const active = tr.querySelector('[data-field="active"]').checked ? 'TRUE' : 'FALSE'
+
+      const btn = tr.querySelector('button')
+      btn.disabled = true
+      btn.textContent = '…'
+
+      try {
+        const res = await AdminAuth.fetch(`/api/products/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price, stock, active }),
+        })
+        const d = await res.json()
+        btn.textContent = d.success ? 'Saved ✓' : 'Error'
+        setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false }, 1600)
+      } catch {
+        btn.textContent = 'Error'
+        btn.disabled = false
+      }
+    }
+
+    function onFileSelect(input) {
+      const file = input.files[0]
+      if (!file) return
+      document.getElementById('file-name').textContent = file.name
+      document.getElementById('upload-btn').disabled = false
+      const reader = new FileReader()
+      reader.onload = e => { csvText = e.target.result }
+      reader.readAsText(file)
+    }
+
+    async function uploadCSV() {
+      if (!csvText) return
+      const btn = document.getElementById('upload-btn')
+      const alertEl = document.getElementById('csv-alert')
+      btn.disabled = true
+      btn.textContent = 'Uploading…'
+      alertEl.className = 'admin-alert'
+
+      try {
+        const res = await AdminAuth.fetch('/api/stock/upload-csv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ csv: csvText }),
+        })
+        const d = await res.json()
+        if (d.success) {
+          alertEl.textContent = `Done. Created: ${d.created}, Updated: ${d.updated}${d.errors?.length ? `, Errors: ${d.errors.length}` : ''}`
+          alertEl.className = 'admin-alert success visible'
+          loadProducts()
+        } else {
+          alertEl.textContent = d.error || 'Upload failed'
+          alertEl.className = 'admin-alert error visible'
+        }
+      } catch {
+        alertEl.textContent = 'Network error'
+        alertEl.className = 'admin-alert error visible'
+      } finally {
+        btn.disabled = false
+        btn.textContent = 'Upload & Sync'
+      }
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    loadProducts()
+  </script>
+</body>
+</html>
