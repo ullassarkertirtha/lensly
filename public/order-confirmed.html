@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed | LensLy</title>
+  <meta name="description" content="Your LensLy order has been placed successfully. We'll prepare your frames and deliver them to your door." />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .confirmed-page {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 96px 32px 120px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .confirmed-icon {
+      width: 64px;
+      height: 64px;
+      border: 1.5px solid var(--onyx);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 32px;
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.6); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .confirmed-heading {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+
+    .confirmed-sub {
+      font-size: 14px;
+      color: var(--gray-500);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .confirmed-order-id {
+      display: inline-block;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      color: var(--onyx);
+    }
+
+    .confirmed-order-label {
+      font-size: 11px;
+      color: var(--gray-400);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* Order summary block */
+    .confirmed-summary {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      padding: 24px;
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    .confirmed-summary-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 20px;
+    }
+
+    .confirmed-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .confirmed-item:last-of-type { border-bottom: none; }
+
+    .confirmed-item-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--onyx);
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .confirmed-item-price {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--onyx);
+      white-space: nowrap;
+    }
+
+    .confirmed-divider {
+      border: none;
+      border-top: 1px solid var(--gray-200);
+      margin: 16px 0 12px;
+    }
+
+    .confirmed-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--gray-500);
+      padding: 5px 0;
+    }
+
+    .confirmed-row.discount { color: #16a34a; }
+
+    .confirmed-total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--onyx);
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .confirmed-loading {
+      font-size: 13px;
+      color: var(--gray-400);
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    .confirmed-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .confirmed-btn-primary {
+      padding: 13px 28px;
+      background: var(--onyx);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      transition: opacity var(--transition);
+      display: inline-block;
+    }
+    .confirmed-btn-primary:hover { opacity: 0.8; }
+
+    .confirmed-btn-secondary {
+      padding: 13px 28px;
+      border: 1px solid var(--gray-200);
+      color: var(--gray-500);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      transition: border-color var(--transition), color var(--transition);
+      display: inline-block;
+    }
+    .confirmed-btn-secondary:hover { border-color: var(--onyx); color: var(--onyx); }
+
+    @media (max-width: 480px) {
+      .confirmed-page { padding: 60px 16px 80px; }
+      .confirmed-heading { font-size: 28px; }
+      .confirmed-steps { grid-template-columns: 1fr; }
+      .confirmed-actions { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="offer-banner">
+    <span id="offer-msg"></span>
+    <span>—</span>
+    <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+    <span id="offer-countdown" class="countdown"></span>
+  </div>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">LensLy</a>
+      <div class="navbar-right">
+        <div class="nav-menu-container">
+          <button id="nav-menu-btn" class="nav-menu-btn" onclick="toggleNavMenu(event)">≡ Menu</button>
+          <div id="nav-dropdown" class="nav-dropdown">
+            <span id="nav-username" class="nav-user-name" style="padding:12px 16px; display:block; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1a1a1a;"></span>
+            <a href="/login.html" id="nav-login">Login</a>
+            <a href="/face-scan.html">Face Scan</a>
+            <a href="/consultation.html">Doctor Consultation</a>
+            <button id="nav-logout" onclick="Auth.logout()" style="display:none; text-align:left; border-top:1px solid #f0f0f0;">Logout</button>
+          </div>
+        </div>
+        <span class="navbar-divider">|</span>
+        <a href="/cart.html">
+          Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-enter">
+    <div class="confirmed-page">
+      <div class="confirmed-icon">✓</div>
+
+      <h1 class="confirmed-heading">Order Placed</h1>
+      <p class="confirmed-sub">
+        Thank you for shopping with LensLy.<br />
+        A confirmation email is on its way to you.
+      </p>
+
+      <div id="order-id-block" style="display:none">
+        <p class="confirmed-order-label">Your order ID</p>
+        <div class="confirmed-order-id" id="order-id-display"></div>
+      </div>
+
+      <div class="confirmed-summary" id="order-summary">
+        <div class="confirmed-loading">Loading order details…</div>
+      </div>
+
+      <div class="confirmed-actions">
+        <a href="/" class="confirmed-btn-primary">Continue Shopping</a>
+        <a href="/consultation.html" class="confirmed-btn-secondary">Book a Consultation</a>
+      </div>
+    </div>
+  </main>
+
+    <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <p class="footer-col-title">About</p>
+          <a href="/about.html">Our Story</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Contact</p>
+          <a href="/contact.html">Contact Us</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Support</p>
+          <a href="/support.html">Help Center</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Legal</p>
+          <a href="/privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      LensLy © 2026 — All Rights Reserved
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/offers.js"></script>
+  <script src="/js/nav.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search)
+    const orderId = params.get('id')
+
+    // Show order ID badge
+    if (orderId) {
+      document.getElementById('order-id-display').textContent = orderId
+      document.getElementById('order-id-block').style.display = 'block'
+    }
+
+    // Parse the flat items string from the Sheet into structured line items.
+    // Format per item: "Name - Desc (GENDER) x2 @ ৳4799 [Lens info]"
+    function parseItems(itemsStr) {
+      if (!itemsStr) return []
+      // Split on ", " but only when NOT inside brackets
+      const parts = []
+      let depth = 0, cur = ''
+      for (const ch of itemsStr) {
+        if (ch === '[') depth++
+        if (ch === ']') depth--
+        if (ch === ',' && depth === 0) { parts.push(cur.trim()); cur = '' }
+        else cur += ch
+      }
+      if (cur.trim()) parts.push(cur.trim())
+
+      return parts.map(part => {
+        // Extract price and lens info from the end: "... x2 @ ৳4799 [lens]"
+        const match = part.match(/^(.+?)\s+x(\d+)\s+@\s+৳([\d,]+)\s+\[(.*)\]$/)
+        if (!match) return { label: part, price: '' }
+        const [, fullName, qty, price, lens] = match
+        const lensLabel = lens && lens !== 'None' ? ` · ${lens}` : ''
+        return {
+          label: `${fullName} × ${qty}${lensLabel}`,
+          price: `৳ ${Number(price.replace(/,/g, '')).toLocaleString()}`,
+          unitPrice: Number(price.replace(/,/g, '')),
+          qty: Number(qty),
+        }
+      })
+    }
+
+    async function loadOrderSummary() {
+      const summaryEl = document.getElementById('order-summary')
+      if (!orderId) {
+        summaryEl.innerHTML = `<div class="confirmed-loading">No order found.</div>`
+        return
+      }
+
+      try {
+        const data = await API.getOrder(orderId)
+        if (data.error || !data.order) {
+          summaryEl.innerHTML = `<div class="confirmed-loading">Could not load order details.</div>`
+          return
+        }
+
+        const o = data.order
+        const items = parseItems(o.items)
+        const hasDiscount = o.discount && o.discount !== 'None'
+
+        summaryEl.innerHTML = `
+          <div class="confirmed-summary-title">Order Summary</div>
+          ${items.map(item => `
+            <div class="confirmed-item">
+              <span class="confirmed-item-name">${item.label}</span>
+              <span class="confirmed-item-price">${item.price}</span>
+            </div>
+          `).join('')}
+          <hr class="confirmed-divider" />
+          <div class="confirmed-row"><span>Subtotal</span><span>৳ ${Number(o.subtotal).toLocaleString()}</span></div>
+          <div class="confirmed-row"><span>Shipping</span><span>৳ ${Number(o.shipping).toLocaleString()}</span></div>
+          ${hasDiscount ? `<div class="confirmed-row discount"><span>Discount</span><span>${o.discount}</span></div>` : ''}
+          <div class="confirmed-total"><span>Total Due</span><span>৳ ${Number(o.grand_total).toLocaleString()}</span></div>
+        `
+      } catch {
+        summaryEl.innerHTML = `<div class="confirmed-loading">Could not load order details.</div>`
+      }
+    }
+
+    initNav()
+    initOfferBanner()
+    loadOrderSummary()
+  </script>
+</body>
+</html>
