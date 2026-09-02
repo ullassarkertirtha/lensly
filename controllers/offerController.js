@@ -89,4 +89,8 @@ async function updateOffer(offer_key, updates) {
     await updateRowByKey('offers', 'offer_key', offer_key, safe)
 }
 
-module.exports = { getActiveOffers, getAllOffers, applyBestOffer, createOffer, updateOffer }
+async function deleteOffer(offer_key) {
+    await updateRowByKey('offers', 'offer_key', offer_key, { active: 'FALSE' })
+}
+
+module.exports = { getActiveOffers, getAllOffers, applyBestOffer, createOffer, updateOffer, deleteOffer }

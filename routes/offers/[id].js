@@ -1,4 +1,4 @@
-const { updateOffer } = require('../../controllers/offerController')
+const { updateOffer, deleteOffer } = require('../../controllers/offerController')
 const { requireAdmin } = require('../../middleware/adminOnly')
 
 // Note: despite filename [id].js, offers are keyed by offer_key.
@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
 
         if (req.method === 'DELETE') {
             // Soft-delete: set active to FALSE rather than removing the row
-            await updateOffer(offer_key, { active: 'FALSE' })
+            await deleteOffer(offer_key)
             return res.status(200).json({ success: true })
         }
 
