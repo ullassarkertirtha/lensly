@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultations | LensLy Admin</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <style>
+    .cons-wrap .admin-table th  { font-size: 9px; padding: 8px 10px; white-space: nowrap; }
+    .cons-wrap .admin-table td  { font-size: 12px; padding: 9px 10px; }
+    .issue-cell { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: help; }
+    .frame-yes  { font-weight: 700; color: #166534; }
+    .frame-no   { color: #9a9a9a; }
+    .code-cell  { font-family: 'Courier New', monospace; font-size: 11px; }
+    .row-cancelled td { opacity: 0.6; }
+    .badge-cancelled { background: #f3f4f6; color: #6a6a6a; font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; }
+
+    /* Cancel modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #FFFFFF;
+      border: 1px solid #e0e0e0;
+      max-width: 440px;
+      width: 100%;
+      padding: 28px 28px 24px;
+    }
+    .modal-title { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+    .modal-body  { font-size: 13px; color: #6a6a6a; line-height: 1.6; margin-bottom: 20px; }
+    .modal-body strong { color: #0F0F0F; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+  <!-- Cancel confirmation modal -->
+  <div class="modal-backdrop" id="cancel-modal">
+    <div class="modal-box">
+      <div class="modal-title">Cancel this consultation?</div>
+      <div class="modal-body" id="modal-body">
+        This action is <strong>permanent</strong>. The consultation will be marked Cancelled
+        and the customer will receive a cancellation email.
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Go Back</button>
+        <button class="btn btn-danger" id="modal-confirm-btn" onclick="confirmCancel()">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile top bar -->
+  <div class="admin-mobile-bar">
+    <div class="admin-mobile-logo">LensLy <span>Admin</span></div>
+    <button class="admin-hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
+  </div>
+  <div class="admin-mobile-nav" id="mobile-nav">
+    <a href="/admin/index.html">Dashboard</a>
+    <a href="/admin/orders.html">Orders</a>
+    <a href="/admin/products.html">Products</a>
+    <a href="/admin/offers.html">Offers</a>
+    <a href="/admin/consultations.html" class="active">Consultations</a>
+    <div class="mobile-footer">
+      <span id="mob-username"></span>
+      <button onclick="AdminAuth.logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-logo">LensLy<span>Admin Panel</span></div>
+      <nav class="admin-sidebar-nav">
+        <a href="/admin/index.html">Dashboard</a>
+        <a href="/admin/orders.html">Orders</a>
+        <a href="/admin/products.html">Products</a>
+        <a href="/admin/offers.html">Offers</a>
+        <a href="/admin/consultations.html" class="active">Consultations</a>
+      </nav>
+      <div class="admin-sidebar-footer">
+        <strong id="sb-username">Admin</strong>
+        <button onclick="AdminAuth.logout()">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="admin-topbar"><h1>Consultations</h1></div>
+      <div class="admin-content">
+
+        <div class="table-toolbar">
+          <input class="toolbar-search" id="search" placeholder="Search by name, phone, or email…" oninput="renderTable()" />
+          <select class="toolbar-select" id="status-filter" onchange="renderTable()">
+            <option value="">All Statuses</option>
+            <option>Pending</option>
+            <option>Contacted</option>
+            <option>Resolved</option>
+            <option>Cancelled</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap">
+            <input type="checkbox" id="frame-owners" onchange="renderTable()" />
+            Frame owners only
+          </label>
+        </div>
+
+        <div class="admin-table-wrap cons-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Issue</th>
+                <th>Preferred Time</th>
+                <th>Frame</th>
+                <th>Disc. Code</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="cons-body">
+              <tr><td colspan="8" class="empty-state">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/admin/auth.js"></script>
+  <script>
+    AdminAuth.requireLogin()
+    const uname = AdminAuth.getUsername() || 'Admin'
+    document.getElementById('sb-username').textContent = uname
+    document.getElementById('mob-username').textContent = uname
+
+    function toggleMobileNav() {
+      document.getElementById('mobile-nav').classList.toggle('open')
+      document.getElementById('hamburger').classList.toggle('open')
+    }
+
+    const ACTIVE_STATUSES = ['Pending', 'Contacted', 'Resolved']
+    let allCons = []
+    let pendingCancelId = null
+
+    async function loadCons() {
+      const res = await AdminAuth.fetch('/api/consultations')
+      const { consultations } = await res.json()
+      // API already returns latest-first (sorted server-side)
+      allCons = consultations || []
+      renderTable()
+    }
+
+    function renderTable() {
+      const q      = document.getElementById('search').value.toLowerCase()
+      const sf     = document.getElementById('status-filter').value
+      const foOnly = document.getElementById('frame-owners').checked
+
+      const rows = allCons.filter(c => {
+        const matchQ  = !q
+          || (c.customer_name || '').toLowerCase().includes(q)
+          || (c.phone || '').includes(q)
+          || (c.email || '').toLowerCase().includes(q)
+        const matchS  = !sf || c.status === sf
+        const matchFo = !foOnly || c.owns_frame === 'TRUE'
+        return matchQ && matchS && matchFo
+      })
+
+      const tbody = document.getElementById('cons-body')
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No consultations found.</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = rows.map(c => {
+        const isCancelled = c.status === 'Cancelled'
+        const isOwner = c.owns_frame === 'TRUE'
+
+        const statusCell = isCancelled
+          ? `<span class="badge-cancelled">Cancelled</span>`
+          : `<select class="status-select badge-${c.status.toLowerCase()}" data-id="${escHtml(c.consultation_id)}" onchange="onStatusChange(this)">
+               ${ACTIVE_STATUSES.map(s => `<option${s === c.status ? ' selected' : ''}>${s}</option>`).join('')}
+               <option value="Cancelled">Cancel…</option>
+             </select>`
+
+        return `
+          <tr class="${isCancelled ? 'row-cancelled' : isOwner ? 'row-highlight' : ''}">
+            <td style="font-weight:500;white-space:nowrap">${escHtml(c.customer_name || '—')}</td>
+            <td style="white-space:nowrap">${escHtml(c.phone || '—')}</td>
+            <td style="font-size:11px">${escHtml(c.email || '—')}</td>
+            <td class="issue-cell" title="${escHtml(c.issue || '')}">${escHtml(c.issue || '—')}</td>
+            <td style="font-size:11px;white-space:nowrap">${escHtml(c.preferred_time || '—')}</td>
+            <td style="text-align:center">${isOwner ? '<span class="frame-yes">Yes</span>' : '<span class="frame-no">—</span>'}</td>
+            <td class="code-cell">${c.discount_code ? escHtml(c.discount_code) : '<span style="color:#9a9a9a">—</span>'}</td>
+            <td>${statusCell}</td>
+          </tr>
+        `
+      }).join('')
+    }
+
+    function onStatusChange(sel) {
+      if (sel.value === 'Cancelled') {
+        const currentStatus = allCons.find(c => c.consultation_id === sel.dataset.id)?.status || 'Pending'
+        sel.value = currentStatus
+        openCancelModal(sel.dataset.id)
+      } else {
+        updateStatus(sel.dataset.id, sel.value, sel)
+      }
+    }
+
+    async function updateStatus(conId, status, sel) {
+      if (sel) sel.disabled = true
+      try {
+        const res = await AdminAuth.fetch(`/api/consultations/${conId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        })
+        if (!res.ok) {
+          const d = await res.json()
+          alert('Error: ' + d.error)
+          loadCons()
+        } else {
+          const c = allCons.find(x => x.consultation_id === conId)
+          if (c) c.status = status
+          if (sel) sel.className = `status-select badge-${status.toLowerCase()}`
+        }
+      } catch {
+        alert('Network error')
+        loadCons()
+      } finally {
+        if (sel) sel.disabled = false
+      }
+    }
+
+    function openCancelModal(conId) {
+      pendingCancelId = conId
+      const con = allCons.find(c => c.consultation_id === conId)
+      const name = con?.customer_name || conId
+
+      document.getElementById('modal-body').innerHTML =
+        `This action is <strong>permanent and cannot be undone</strong>.<br><br>
+         The consultation from <strong>${escHtml(name)}</strong> will be marked
+         <strong>Cancelled</strong> and they will receive a cancellation email.`
+
+      document.getElementById('cancel-modal').classList.add('open')
+      document.getElementById('modal-confirm-btn').disabled = false
+      document.getElementById('modal-confirm-btn').textContent = 'Yes, Cancel'
+    }
+
+    function closeModal() {
+      document.getElementById('cancel-modal').classList.remove('open')
+      pendingCancelId = null
+    }
+
+    async function confirmCancel() {
+      if (!pendingCancelId) return
+      const btn = document.getElementById('modal-confirm-btn')
+      btn.disabled = true
+      btn.textContent = 'Cancelling…'
+
+      try {
+        const res = await AdminAuth.fetch(`/api/consultations/${pendingCancelId}/cancel`, { method: 'POST' })
+        const d = await res.json()
+        if (d.success) {
+          const c = allCons.find(x => x.consultation_id === pendingCancelId)
+          if (c) c.status = 'Cancelled'
+          closeModal()
+          renderTable()
+        } else {
+          alert('Error: ' + (d.error || 'Cancellation failed'))
+          btn.disabled = false
+          btn.textContent = 'Yes, Cancel'
+        }
+      } catch {
+        alert('Network error — please try again')
+        btn.disabled = false
+        btn.textContent = 'Yes, Cancel'
+      }
+    }
+
+    document.getElementById('cancel-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal()
+    })
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    loadCons()
+  </script>
+</body>
+</html>
