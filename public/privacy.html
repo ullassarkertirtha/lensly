@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legal | LensLy</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+
+  <div id="offer-banner">
+    <span id="offer-msg"></span>
+    <span>—</span>
+    <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+    <span id="offer-countdown" class="countdown"></span>
+  </div>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">LensLy</a>
+      <div class="navbar-right">
+        <div class="nav-menu-container">
+          <button id="nav-menu-btn" class="nav-menu-btn" onclick="toggleNavMenu(event)">≡ Menu</button>
+          <div id="nav-dropdown" class="nav-dropdown">
+            <span id="nav-username" class="nav-user-name"
+              style="padding:12px 16px; display:block; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1a1a1a;"></span>
+            <a href="/login.html" id="nav-login">Login</a>
+            <a href="/face-scan.html">Face Scan</a>
+            <a href="/consultation.html">Doctor Consultation</a>
+            <button id="nav-logout" onclick="Auth.logout()"
+              style="display:none; text-align:left; border-top:1px solid #f0f0f0;">Logout</button>
+          </div>
+        </div>
+        <span class="navbar-divider">|</span>
+        <a href="/cart.html">
+          Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-enter">
+    <div class="container" style="padding: 100px 32px; max-width: 800px; min-height: 50vh;">
+      <h1
+        style="font-family: var(--font-display); font-size: 42px; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.02em;">
+        Privacy Policy</h1>
+      <div
+        style="font-size: 14px; color: var(--gray-500); line-height: 1.8; display: flex; flex-direction: column; gap: 20px;">
+        <p>Your privacy is important to us. It is LensLy's policy to respect your privacy regarding any information we
+          may collect from you across our website, and other sites we own and operate.</p>
+        <p>We only ask for personal information when we truly need it to provide a service to you. We collect it by fair
+          and lawful means, with your knowledge and consent.</p>
+        <p>We only retain collected information for as long as necessary to provide you with your requested service.
+          What data we store, we’ll protect within commercially acceptable means to prevent loss and theft, as well as
+          unauthorised access, disclosure, copying, use or modification.</p>
+        <p>You are free to refuse our request for your personal information, with the understanding that we may be
+          unable to provide you with some of your desired services.</p>
+      </div>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <p class="footer-col-title">About</p>
+          <a href="/about.html">Our Story</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Contact</p>
+          <a href="/contact.html">Contact Us</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Support</p>
+          <a href="/support.html">Help Center</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Legal</p>
+          <a href="/privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      LensLy © 2026 — All Rights Reserved
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/offers.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/products.js"></script>
+  <script>
+    const bannerImg = document.getElementById('hero-img')
+    const bannerWrap = document.getElementById('hero-section')
+    bannerImg.onerror = () => bannerWrap.style.display = 'none'
+    bannerImg.onload = () => bannerWrap.classList.add('loaded')
+    if (bannerImg.complete) bannerWrap.classList.add('loaded')
+
+    initNav()
+    initOfferBanner()
+    loadPage()
+  </script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Face Scan | LensLy</title>
+  <meta name="description"
+    content="Use AI to scan your face shape and discover the perfect frames for you — powered by MediaPipe." />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Page shell ─────────────────────────────────────────────────────── */
+    .scan-page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 32px 100px;
+    }
+
+    /* ── Hero headline ───────────────────────────────────────────────────── */
+    .scan-hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .scan-hero-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      border: 1px solid var(--gray-200);
+      padding: 4px 12px;
+      margin-bottom: 18px;
+    }
+
+    .scan-hero h1 {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 400;
+      line-height: 1.05;
+      margin-bottom: 12px;
+      letter-spacing: 0.01em;
+    }
+
+    .scan-hero-sub {
+      font-size: 14px;
+      color: var(--gray-500);
+      max-width: 420px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Gender selector ─────────────────────────────────────────────────── */
+    .gender-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+
+    .gender-btn {
+      padding: 8px 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--gray-200);
+      color: var(--gray-500);
+      font-family: var(--font-body);
+      border-radius: var(--radius);
+      transition: all var(--transition);
+      cursor: pointer;
+    }
+
+    .gender-btn.active,
+    .gender-btn:hover {
+      border-color: var(--onyx);
+      color: var(--onyx);
+    }
+
+    .gender-btn.active {
+      background: var(--onyx);
+      color: var(--white);
+    }
+
+    /* ── Step containers ─────────────────────────────────────────────────── */
+    #step-camera,
+    #step-analysing,
+    #step-results {
+      display: none;
+    }
+
+    /* ── Idle CTA ────────────────────────────────────────────────────────── */
+    #step-idle {
+      text-align: center;
+    }
+
+    .scan-cta-area {
+      border: 1.5px dashed var(--gray-200);
+      border-radius: var(--radius);
+      padding: 56px 32px;
+      transition: border-color var(--transition);
+    }
+
+    .scan-cta-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .scan-cta-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .scan-cta-sub {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .scan-start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--onyx);
+      color: var(--white);
+      padding: 14px 32px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      transition: opacity var(--transition);
+      cursor: pointer;
+    }
+
+    .scan-start-btn:hover {
+      opacity: 0.8;
+    }
+
+    .upload-alt {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .upload-alt label {
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      color: var(--gray-500);
+      transition: color var(--transition);
+    }
+
+    .upload-alt label:hover {
+      color: var(--onyx);
+    }
+
+    /* ── Camera view ─────────────────────────────────────────────────────── */
+    #step-camera {
+      text-align: center;
+    }
+
+    .camera-frame {
+      position: relative;
+      display: inline-block;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      width: 100%;
+      max-width: 520px;
+      aspect-ratio: 4/3;
+    }
+
+    #face-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      /* mirror for front camera */
+      display: block;
+    }
+
+    .camera-oval-guide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .camera-oval-guide::after {
+      content: '';
+      width: 55%;
+      aspect-ratio: 3/4;
+      border: 2px solid rgba(255, 255, 255, 0.55);
+      border-radius: 50%;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+    }
+
+    .camera-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    #capture-btn {
+      background: var(--onyx);
+      color: var(--white);
+      padding: 14px 40px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: opacity var(--transition);
+    }
+
+    #capture-btn:disabled {
+      opacity: 0.4;
+      cursor: wait;
+    }
+
+    #capture-btn:not(:disabled):hover {
+      opacity: 0.8;
+    }
+
+    #camera-status {
+      font-size: 12px;
+      color: var(--gray-500);
+      min-height: 18px;
+    }
+
+    #upload-fallback {
+      display: none;
+      margin-top: 4px;
+    }
+
+    #upload-fallback label {
+      font-size: 12px;
+      color: var(--gray-400);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      cursor: pointer;
+    }
+
+    #upload-fallback label:hover {
+      color: var(--onyx);
+    }
+
+    /* ── Analysing state ──────────────────────────────────────────────────── */
+    #step-analysing {
+      text-align: center;
+      padding: 64px 0;
+    }
+
+    .analysis-spinner {
+      width: 52px;
+      height: 52px;
+      border: 2px solid var(--gray-100);
+      border-top-color: var(--onyx);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 24px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #analysis-status {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    /* ── Results ─────────────────────────────────────────────────────────── */
+    #step-results {
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 40px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    #result-snapshot {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      border: 2px solid var(--gray-100);
+      flex-shrink: 0;
+    }
+
+    .result-shape-info {
+      flex: 1;
+    }
+
+    .result-shape-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 6px;
+    }
+
+    .result-shape-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    #result-shape-emoji {
+      font-size: 22px;
+    }
+
+    #result-shape-label {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    #result-tagline {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .result-tip {
+      font-size: 12px;
+      color: var(--gray-400);
+      background: var(--gray-50);
+      padding: 10px 14px;
+      border-left: 2px solid var(--gray-200);
+      line-height: 1.5;
+    }
+
+    #result-tip::before {
+      content: '💡 ';
+    }
+
+    .results-grid-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 20px;
+    }
+
+    #suggestions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      margin-bottom: 40px;
+    }
+
+    .rescan-row {
+      text-align: center;
+    }
+
+    .rescan-btn {
+      background: var(--onyx);
+      color: var(--white);
+      padding: 14px 40px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: opacity var(--transition);
+      text-decoration: none;
+    }
+
+    .rescan-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* ── How it works ────────────────────────────────────────────────────── */
+    .how-it-works {
+      border-top: 1px solid var(--gray-100);
+      padding-top: 48px;
+      margin-top: 56px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      text-align: center;
+    }
+
+    .hiw-step-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gray-300);
+      margin-bottom: 8px;
+    }
+
+    .hiw-step-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .hiw-step-text {
+      font-size: 12px;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .scan-page {
+        padding: 32px 16px 80px;
+      }
+
+      .scan-hero h1 {
+        font-size: 30px;
+      }
+
+      #suggestions-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .result-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .result-tip {
+        text-align: left;
+      }
+
+      .how-it-works {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+
+    /* Hidden canvas (used for detection only) */
+    #snap-canvas {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="offer-banner">
+    <span id="offer-msg"></span>
+    <span>—</span>
+    <span style="color:#9a9a9a;font-size:11px">Ends in</span>
+    <span id="offer-countdown" class="countdown"></span>
+  </div>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">LensLy</a>
+      <div class="navbar-right">
+        <div class="nav-menu-container">
+          <button id="nav-menu-btn" class="nav-menu-btn" onclick="toggleNavMenu(event)">≡ Menu</button>
+          <div id="nav-dropdown" class="nav-dropdown">
+            <span id="nav-username" class="nav-user-name"
+              style="padding:12px 16px; display:block; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1a1a1a;"></span>
+            <a href="/login.html" id="nav-login">Login</a>
+            <a href="/face-scan.html">Face Scan</a>
+            <a href="/consultation.html">Doctor Consultation</a>
+            <button id="nav-logout" onclick="Auth.logout()"
+              style="display:none; text-align:left; border-top:1px solid #f0f0f0;">Logout</button>
+          </div>
+        </div>
+        <span class="navbar-divider">|</span>
+        <a href="/cart.html">
+          Cart<span id="cart-count" class="cart-count" style="display:none"></span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-enter">
+    <div class="scan-page">
+
+      <!-- Hero -->
+      <div class="scan-hero">
+        <div class="scan-hero-tag">AI-Powered</div>
+        <h1>Find Your Perfect Frame</h1>
+        <p class="scan-hero-sub">Our AI analyses your face shape in seconds and recommends frames designed to complement
+          your features.</p>
+      </div>
+
+      <!-- Gender preference -->
+      <div class="gender-row">
+        <button class="gender-btn active" onclick="setGender('all', this)">All</button>
+        <button class="gender-btn" onclick="setGender('Men', this)">Men</button>
+        <button class="gender-btn" onclick="setGender('Women', this)">Women</button>
+        <button class="gender-btn" onclick="setGender('Unisex', this)">Unisex</button>
+      </div>
+
+      <!-- Limits UI -->
+      <div id="scan-limits-box"
+        style="text-align:center; font-size:13px; color:var(--gray-500); margin-bottom: 16px; display:none;">
+        You have <strong id="scan-limits-text">2</strong> scans remaining today.
+      </div>
+
+      <!-- Step: Idle (initial CTA) -->
+      <div id="step-idle">
+        <div class="scan-cta-area" id="scan-cta-area">
+          <div class="scan-cta-icon">[¯◉°]</div>
+          <div class="scan-cta-title">Scan Your Face</div>
+          <p class="scan-cta-sub">Uses your device camera — nothing is stored or uploaded.</p>
+          <button class="scan-start-btn" onclick="startCamera()">
+            <span>&#9654;</span> Open Camera
+          </button>
+          <div class="upload-alt">
+            or <label for="upload-input">upload a photo</label>
+            <input type="file" id="upload-input" accept="image/*" style="display:none" onchange="handleUpload(this)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Step: Camera active -->
+      <div id="step-camera">
+        <div style="text-align:center">
+          <div class="camera-frame">
+            <video id="face-video" playsinline muted></video>
+            <div class="camera-oval-guide"></div>
+          </div>
+          <div class="camera-controls">
+            <span id="camera-status">Starting camera…</span>
+            <button id="capture-btn" disabled onclick="captureAndAnalyse()">Capture</button>
+            <div id="upload-fallback">
+              <label for="upload-input-cam">upload a photo instead</label>
+              <input type="file" id="upload-input-cam" accept="image/*" style="display:none"
+                onchange="handleUpload(this)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden canvas for snapshot -->
+      <canvas id="snap-canvas"></canvas>
+
+      <!-- Step: Analysing -->
+      <div id="step-analysing">
+        <div class="analysis-spinner"></div>
+        <p id="analysis-status">Initialising AI…</p>
+      </div>
+
+      <!-- Step: Results -->
+      <div id="step-results">
+        <!-- Face shape result -->
+        <div class="result-header">
+          <img id="result-snapshot" src="" alt="Your photo" />
+          <div class="result-shape-info">
+            <div class="result-shape-tag">Your Face Shape</div>
+            <div class="result-shape-row">
+              <span id="result-shape-label"></span>
+            </div>
+            <p id="result-tagline"></p>
+            <div class="result-tip" id="result-tip"></div>
+          </div>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="results-grid-label">Recommended Frames For You</div>
+        <div id="suggestions-grid"></div>
+
+        <!-- Rescan -->
+        <div class="rescan-row">
+          <button class="rescan-btn" onclick="retakeScan()">←º Scan again</button>
+        </div>
+      </div>
+
+      <!-- How it works (always visible) -->
+      <div class="how-it-works">
+        <div>
+          <div class="hiw-step-num">01</div>
+          <div class="hiw-step-title">Camera or Upload</div>
+          <p class="hiw-step-text">Take a photo or upload one from your gallery. Nothing leaves your device.</p>
+        </div>
+        <div>
+          <div class="hiw-step-num">02</div>
+          <div class="hiw-step-title">AI Face Analysis</div>
+          <p class="hiw-step-text">AI evaluates your face shape and skin tone in real-time.</p>
+        </div>
+        <div>
+          <div class="hiw-step-num">03</div>
+          <div class="hiw-step-title">Personalised Picks</div>
+          <p class="hiw-step-text">We rank our in-stock frames by how well they complement your specific shape.</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <p class="footer-col-title">About</p>
+          <a href="/about.html">Our Story</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Contact</p>
+          <a href="/contact.html">Contact Us</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Support</p>
+          <a href="/support.html">Help Center</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-title">Legal</p>
+          <a href="/privacy.html">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      LensLy © 2026 — All Rights Reserved
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/offers.js"></script>
+  <script src="/js/nav.js"></script>
+  <script src="/js/face-scan.js" type="module"></script>
+  <script>
+    initNav()
+    initOfferBanner()
+  </script>
+</body>
+</html>

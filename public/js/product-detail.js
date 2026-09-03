@@ -3,13 +3,22 @@ const productId = params.get('id')
 let qty = 1
 let currentProduct = null
 let currentOffers = []
+let selectedRating = 0
+// Track edit state — null means "new review" mode
+let editingReviewId = null
 
 if (!productId) location.href = '/'
+
+function togglePowerFields() {
+  const lensType = document.getElementById('f-lens-type').value
+  const powerFields = document.getElementById('power-fields')
+  powerFields.style.display = lensType === 'None' ? 'none' : 'block'
+}
 
 async function loadProduct() {
   try {
     // Start fetching reviews immediately in parallel
-    // loadReviews() // TODO: Implement reviews
+    loadReviews()
 
     const [prodData, offerData] = await Promise.all([
       API.getProduct(productId),
@@ -101,6 +110,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentProduct || isAddingToCart) return
     isAddingToCart = true
 
+    const lensType = document.getElementById('f-lens-type').value
+    const lensErrEl = document.getElementById('lens-error')
+    lensErrEl.textContent = ''
+
+    if (!lensType) {
+      lensErrEl.textContent = 'Please select a lens type.'
+      isAddingToCart = false
+      return
+    }
+
+    let lensPower = ''
+    if (lensType !== 'None') {
+      const sph = document.getElementById('f-sph').value.trim()
+      const cyl = document.getElementById('f-cyl').value.trim()
+      const axis = document.getElementById('f-axis').value.trim()
+      const parts = []
+      if (sph) parts.push(`SPH: ${sph}`)
+      if (cyl) parts.push(`CYL: ${cyl}`)
+      if (axis) parts.push(`AXIS: ${axis}`)
+      lensPower = parts.join(', ')
+    }
+
     const btn = document.getElementById('add-btn')
     btn.disabled = true
     btn.textContent = 'Checking stock...'
@@ -131,7 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
         folder_id: currentProduct.folder_id,
         name: currentProduct.name,
         description: currentProduct.description,
-        price: finalPrice
+        price: finalPrice,
+        lens_type: lensType,
+        lens_power: lensPower,
       }, qty)
 
       btn.textContent = '✓ Added to Cart'
@@ -147,7 +180,150 @@ document.addEventListener('DOMContentLoaded', () => {
       isAddingToCart = false
     }
   }
+
+  // Star rating input
+  document.querySelectorAll('.star-input button').forEach(btn => {
+    btn.onclick = () => {
+      selectedRating = Number(btn.dataset.star)
+      document.querySelectorAll('.star-input button').forEach(b => {
+        b.classList.toggle('active', Number(b.dataset.star) <= selectedRating)
+      })
+    }
+  })
 })
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+
+function renderStars(rating) {
+  const full = '★'.repeat(rating)
+  const empty = `<span class="dim">${'★'.repeat(5 - rating)}</span>`
+  return `<span class="stars">${full}${empty}</span>`
+}
+
+// ── Review form state ─────────────────────────────────────────────────────────
+
+function setStarRating(n) {
+  selectedRating = n
+  document.querySelectorAll('.star-input button').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.star) <= selectedRating)
+  })
+}
+
+function enterEditMode(review) {
+  editingReviewId = review.id
+  setStarRating(review.rating)
+  document.getElementById('review-comment').value = review.comment || ''
+  document.getElementById('review-submit-btn').textContent = 'Update Review'
+  document.getElementById('review-cancel-btn').style.display = 'inline-block'
+  document.getElementById('review-form-title').textContent = 'Edit your review'
+  // Scroll to the form
+  document.getElementById('review-logged-in').scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function cancelEdit() {
+  editingReviewId = null
+  selectedRating = 0
+  setStarRating(0)
+  document.getElementById('review-comment').value = ''
+  document.getElementById('review-submit-btn').textContent = 'Submit Review'
+  document.getElementById('review-cancel-btn').style.display = 'none'
+  document.getElementById('review-form-title').textContent = 'Write a review'
+}
+
+// ── Review load & render ──────────────────────────────────────────────────────
+
+async function loadReviews() {
+  const data = await API.getReviews(productId)
+  const { reviews = [], average = 0, count = 0 } = data
+
+  document.getElementById('reviews-average').innerHTML = count > 0
+    ? `${renderStars(Math.round(average))} ${average} out of 5 (${count} review${count === 1 ? '' : 's'})`
+    : 'No reviews yet'
+
+  const currentUser = Auth.getUser()
+  const list = document.getElementById('reviews-list')
+
+  if (reviews.length === 0) {
+    list.innerHTML = `<p class="no-reviews">Be the first to review this frame.</p>`
+    return
+  }
+
+  list.innerHTML = reviews.map(r => {
+    const isOwn = currentUser && r.user_id === currentUser.id
+    return `
+      <div class="review-item" id="review-${r.id}">
+        <div class="review-item-top">
+          <span class="review-item-name">${r.user_name}</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="review-item-date">${new Date(r.created_at).toLocaleDateString()}</span>
+            ${isOwn ? `
+              <button class="review-action-btn" onclick="startEdit(${JSON.stringify(r).replace(/"/g, '&quot;')})">Edit</button>
+              <button class="review-action-btn review-delete-btn" onclick="doDeleteReview('${r.id}')">Delete</button>
+            ` : ''}
+          </div>
+        </div>
+        ${renderStars(r.rating)}
+        ${r.comment ? `<p class="review-item-comment">${r.comment}</p>` : ''}
+      </div>
+    `
+  }).join('')
+}
+
+// ── Review actions ─────────────────────────────────────────────────────────────
+
+function startEdit(review) {
+  enterEditMode(review)
+}
+
+async function doDeleteReview(reviewId) {
+  if (!confirm('Delete your review? This cannot be undone.')) return
+
+  const itemEl = document.getElementById(`review-${reviewId}`)
+  if (itemEl) { itemEl.style.opacity = '0.4'; itemEl.style.pointerEvents = 'none' }
+
+  const result = await API.deleteReview({ review_id: reviewId })
+
+  if (result.error) {
+    alert(result.error)
+    if (itemEl) { itemEl.style.opacity = ''; itemEl.style.pointerEvents = '' }
+    return
+  }
+
+  loadReviews()
+}
+
+async function submitReview() {
+  const comment = document.getElementById('review-comment').value.trim()
+  const errEl = document.getElementById('review-error')
+  errEl.textContent = ''
+
+  if (selectedRating === 0) {
+    errEl.textContent = 'Please select a star rating.'
+    return
+  }
+
+  const btn = document.getElementById('review-submit-btn')
+  btn.disabled = true
+  btn.textContent = editingReviewId ? 'Updating...' : 'Submitting...'
+
+  let result
+  if (editingReviewId) {
+    result = await API.editReview({ review_id: editingReviewId, rating: selectedRating, comment })
+  } else {
+    result = await API.submitReview({ product_id: productId, rating: selectedRating, comment })
+  }
+
+  if (result.error) {
+    errEl.textContent = result.error
+    btn.disabled = false
+    btn.textContent = editingReviewId ? 'Update Review' : 'Submit Review'
+    return
+  }
+
+  cancelEdit()
+  btn.disabled = false
+  loadReviews()
+}
 
 initNav()
 initOfferBanner()

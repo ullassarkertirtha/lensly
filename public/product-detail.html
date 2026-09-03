@@ -60,7 +60,33 @@
         <div class="product-price" id="product-price"></div>
         <hr class="product-divider" />
 
-        // lens type and power
+        <div class="form-group">
+          <label class="form-label">Lens Type *</label>
+          <select id="f-lens-type" class="form-input form-select" onchange="togglePowerFields()">
+            <option value="">Select lens type</option>
+            <option value="Single Vision">Single Vision</option>
+            <option value="Bifocal">Bifocal</option>
+            <option value="Photochromic">Photochromic</option>
+            <option value="None">No prescription (zero power / sunglasses)</option>
+          </select>
+        </div>
+
+        <div id="power-fields" style="display:none">
+          <label class="form-label">Prescription Power</label>
+          <div class="power-row">
+            <div class="form-group">
+              <input type="text" id="f-sph" class="form-input" placeholder="SPH" />
+            </div>
+            <div class="form-group">
+              <input type="text" id="f-cyl" class="form-input" placeholder="CYL" />
+            </div>
+            <div class="form-group">
+              <input type="text" id="f-axis" class="form-input" placeholder="AXIS" />
+            </div>
+          </div>
+          <p class="power-hint">Enter values from your prescription. Leave blank if unsure — we'll confirm with you before dispatch.</p>
+        </div>
+        <div id="lens-error" style="font-size:12px;color:#b91c1c;min-height:0"></div>
 
         <hr class="product-divider" />
         <div id="stock-msg"></div>
@@ -77,7 +103,36 @@
     </div>
   </main>
 
-  // reviews
+  <div class="reviews-section">
+    <div class="reviews-header">
+      <div class="reviews-title">Reviews</div>
+      <div class="reviews-average" id="reviews-average">Loading...</div>
+    </div>
+
+    <div class="review-form">
+      <div id="review-logged-in" style="display:none">
+        <div class="review-form-title" id="review-form-title">Write a review</div>
+        <div class="star-input">
+          <button type="button" data-star="1">★</button>
+          <button type="button" data-star="2">★</button>
+          <button type="button" data-star="3">★</button>
+          <button type="button" data-star="4">★</button>
+          <button type="button" data-star="5">★</button>
+        </div>
+        <textarea id="review-comment" class="review-textarea" placeholder="Share your thoughts on this frame (optional)"></textarea>
+        <div id="review-error" style="font-size:12px;color:#b91c1c;min-height:0;margin-bottom:8px"></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="review-submit-btn" id="review-submit-btn" onclick="submitReview()">Submit Review</button>
+          <button class="review-cancel-btn" id="review-cancel-btn" onclick="cancelEdit()" style="display:none">Cancel</button>
+        </div>
+      </div>
+      <div id="review-logged-out" class="review-login-prompt">
+        <a href="/login.html">Log in</a> to write a review.
+      </div>
+    </div>
+
+    <div id="reviews-list"></div>
+  </div>
 
     <footer class="footer">
     <div class="footer-inner">
@@ -111,5 +166,10 @@
   <script src="/js/offers.js"></script>
   <script src="/js/nav.js"></script>
   <script src="/js/product-detail.js"></script>
+  <script>
+    // Toggle review form vs login prompt based on session state
+    document.getElementById('review-logged-in').style.display = Auth.isLoggedIn() ? 'block' : 'none'
+    document.getElementById('review-logged-out').style.display = Auth.isLoggedIn() ? 'none' : 'block'
+  </script>
 </body>
 </html>

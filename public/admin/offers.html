@@ -186,39 +186,10 @@
             </label>
           </td>
           <td>
-            <div style="display:flex;gap:4px">
-              <button class="btn btn-outline btn-sm" onclick="saveOffer(this.closest('tr'))">Save</button>
-              <button class="btn btn-outline btn-sm" style="color:#b91c1c;border-color:#fecaca" onclick="deleteOffer(this.closest('tr'))">Delete</button>
-            </div>
+            <button class="btn btn-outline btn-sm" onclick="saveOffer(this.closest('tr'))">Save</button>
           </td>
         </tr>
       `).join('')
-    }
-
-    async function deleteOffer(tr) {
-      const key = tr.dataset.key
-      if (!confirm(`Are you sure you want to deactivate/delete offer "${key}"?`)) return
-
-      const alertEl = document.getElementById('table-alert')
-      alertEl.className = 'admin-alert'
-
-      try {
-        const res = await AdminAuth.fetch(`/api/offers/${encodeURIComponent(key)}`, {
-          method: 'DELETE',
-        })
-        const d = await res.json()
-        if (d.success) {
-          alertEl.textContent = `Offer "${key}" deactivated/deleted.`
-          alertEl.className = 'admin-alert success visible'
-          loadOffers()
-        } else {
-          alertEl.textContent = d.error || 'Delete failed'
-          alertEl.className = 'admin-alert error visible'
-        }
-      } catch {
-        alertEl.textContent = 'Network error'
-        alertEl.className = 'admin-alert error visible'
-      }
     }
 
     async function saveOffer(tr) {

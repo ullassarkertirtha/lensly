@@ -6,18 +6,18 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
 const v = (handler) => async (req, res, next) => {
-    // Merge Express route params into req.query
-    const mergedQuery = { ...(req.query || {}), ...(req.params || {}) }
-    Object.defineProperty(req, 'query', { value: mergedQuery, writable: true })
-
-    try {
-        await handler(req, res)
-    } catch (err) {
-        console.error('Unhandled API Error:', err)
-        if (!res.headersSent) {
-            res.status(500).json({ error: 'Internal Server Error' })
-        }
+  // Merge Express route params into req.query
+  const mergedQuery = { ...(req.query || {}), ...(req.params || {}) }
+  Object.defineProperty(req, 'query', { value: mergedQuery, writable: true })
+  
+  try {
+    await handler(req, res)
+  } catch (err) {
+    console.error('Unhandled API Error:', err)
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal Server Error' })
     }
+  }
 }
 
 // ── ADMIN ──
@@ -60,7 +60,7 @@ app.all('/api/stock/upload-csv', v(require('../routes/stock/upload-csv')))
 
 // 404 Fallback
 app.use((req, res) => {
-    res.status(404).json({ error: 'Endpoint not found' })
+  res.status(404).json({ error: 'Endpoint not found' })
 })
 
 module.exports = app

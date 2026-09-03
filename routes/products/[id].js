@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       if (req.query.live === 'true') {
-        const products = await getAllProducts(true)
+        const products = await getAllProducts(true) // bypass cache — stock re-check before add-to-cart
         const product = products.find(p => p.folder_id === id)
         return res.status(200).json({ product: product || null })
       }

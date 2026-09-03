@@ -1,6 +1,8 @@
 let allProducts = []
 let allOffers = []
 let activeFilter = 'all'
+// ratings map: folder_id : { average, count }
+let ratingsMap = {}
 
 async function loadPage() {
   const [prodData, offerData] = await Promise.all([
@@ -11,6 +13,35 @@ async function loadPage() {
   allOffers = offerData.offers || []
   applyFilterAndSort()
 
+  // Fetch ratings for all products in parallel — non-blocking, updates cards
+  // after they've already rendered so the grid appears instantly.
+  loadAllRatings()
+}
+
+async function loadAllRatings() {
+  try {
+    const results = await Promise.all(
+      allProducts.map(p =>
+        API.getReviews(p.folder_id)
+          .then(d => ({ folder_id: p.folder_id, average: d.average || 0, count: d.count || 0 }))
+          .catch(() => ({ folder_id: p.folder_id, average: 0, count: 0 }))
+      )
+    )
+    results.forEach(r => { ratingsMap[r.folder_id] = r })
+    // Update DOM in-place without destroying image elements
+    updateRatingsInDOM()
+  } catch {}
+}
+
+function updateRatingsInDOM() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    const id = card.dataset.id
+    const rating = ratingsMap[id]
+    if (rating && rating.count > 0) {
+      const container = card.querySelector('.rating-container')
+      if (container) container.innerHTML = renderCardStars(rating.average, rating.count)
+    }
+  })
 }
 
 function setFilter(filter) {
@@ -74,7 +105,7 @@ function renderGrid(products) {
   products.forEach((p, index) => {
     const hasStock = p.stock > 0
     const { finalPrice, discountLabel } = Offers.calculate(p.price, allOffers)
-
+    const rating = ratingsMap[p.folder_id]
     const card = document.createElement('a')
     card.href = `/product-detail.html?id=${p.folder_id}`
     card.className = 'product-card'
@@ -98,6 +129,9 @@ function renderGrid(products) {
           ${discountLabel && finalPrice !== p.price
             ? `<span class="price-original">৳ ${p.price.toLocaleString()}</span>`
             : ''}
+        </div>
+        <div class="rating-container">
+          ${rating && rating.count > 0 ? renderCardStars(rating.average, rating.count) : ''}
         </div>
       </div>`
     grid.appendChild(card)
